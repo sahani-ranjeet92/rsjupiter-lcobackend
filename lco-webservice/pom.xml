@@ -4,10 +4,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.lcoperator</groupId>
-	    <artifactId>lcobackend</artifactId>
-	    <version>0.0.1-SNAPSHOT</version>
+		<artifactId>lcobackend</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	
+
 	<artifactId>lco-webservice</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
@@ -25,7 +25,13 @@
 			<artifactId>spring-boot-starter-tomcat</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>com.lcoperator</groupId>
+			<artifactId>lco-dao</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
