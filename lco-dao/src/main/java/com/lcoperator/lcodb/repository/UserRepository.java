@@ -8,4 +8,8 @@ import com.lcoperator.lcodb.model.User;
 @Repository
 public interface UserRepository extends CrudRepository<User, Long> {
 
+	boolean existsByUsername(String userName);
+
+	User findByUsername(String userName);
+
 }
