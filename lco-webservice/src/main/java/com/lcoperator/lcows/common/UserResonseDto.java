@@ -6,6 +6,7 @@ public class UserResonseDto {
 
 	public long getUserId() {
 		return userId;
+
 	}
 
 	public void setUserId(long userId) {

@@ -20,7 +20,7 @@ import com.lcoperator.lcows.manager.LcoUserManager;
  */
 @RestController
 @RequestMapping("/lco-user")
-public class LcoUserController {
+public class LcoUserController extends LcoBaseController {
 
 	@Autowired
 	private LcoUserManager manager;
@@ -49,22 +49,6 @@ public class LcoUserController {
 			return getErrorResponseInfo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-	}
-
-	private ResponseEntity<LcoResponseInfo> getSuccessResponseInfo(String msg, Object data, HttpStatus status) {
-		LcoResponseInfo info = new LcoResponseInfo();
-		info.setMessage(msg);
-		info.setStatus(status.value());
-		if (data != null)
-			info.setData(data);
-		return new ResponseEntity<>(info, status);
-	}
-
-	private ResponseEntity<LcoResponseInfo> getErrorResponseInfo(String msg, HttpStatus status) {
-		LcoResponseInfo info = new LcoResponseInfo();
-		info.setMessage(msg);
-		info.setStatus(status.value());
-		return new ResponseEntity<>(info, status);
 	}
 
 }
