@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -212,7 +213,7 @@ public class Orders implements java.io.Serializable {
 		this.field3 = field3;
 	}
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "orders")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "orders", cascade = CascadeType.ALL)
 	public Set<Orderitems> getOrderitemses() {
 		return this.orderitemses;
 	}

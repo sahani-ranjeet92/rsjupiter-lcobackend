@@ -12,8 +12,8 @@ public class OrderResponseDto {
 	private List<PackageInfo> packages = null;
 	private Long userId;
 	private Long orderId;
-	private Long totalPrice;
-	private Long totalTax;
+	private double totalPrice;
+	private double totalTax;
 	private String orderStatus;
 	private String creationDate;
 	private String lastUpdate;
@@ -50,19 +50,19 @@ public class OrderResponseDto {
 		this.orderId = orderId;
 	}
 
-	public Long getTotalPrice() {
+	public double getTotalPrice() {
 		return totalPrice;
 	}
 
-	public void setTotalPrice(Long totalPrice) {
+	public void setTotalPrice(double totalPrice) {
 		this.totalPrice = totalPrice;
 	}
 
-	public Long getTotalTax() {
+	public double getTotalTax() {
 		return totalTax;
 	}
 
-	public void setTotalTax(Long totalTax) {
+	public void setTotalTax(double totalTax) {
 		this.totalTax = totalTax;
 	}
 

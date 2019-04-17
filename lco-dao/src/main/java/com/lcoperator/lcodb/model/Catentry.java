@@ -1,15 +1,14 @@
 package com.lcoperator.lcodb.model;
-// Generated Mar 26, 2019 11:21:18 PM by Hibernate Tools 5.1.0.Alpha1
+// Generated Apr 17, 2019 11:00:48 PM by Hibernate Tools 5.1.0.Alpha1
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
+import static javax.persistence.GenerationType.IDENTITY;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -38,6 +37,7 @@ public class Catentry implements java.io.Serializable {
 	private Integer field1;
 	private String field2;
 	private String field3;
+	private Set<Offerprice> offerprices = new HashSet<Offerprice>(0);
 	private Set<Catgpenrel> catgpenrels = new HashSet<Catgpenrel>(0);
 
 	public Catentry() {
@@ -57,7 +57,7 @@ public class Catentry implements java.io.Serializable {
 
 	public Catentry(String chnumber, String chname, int markfordelete, String url, Date lastupdate, Integer buyable,
 			Date startdate, Date enddate, Date availabilitydate, Date discontinuedate, Integer field1, String field2,
-			String field3, Set<Catgpenrel> catgpenrels) {
+			String field3, Set<Offerprice> offerprices, Set<Catgpenrel> catgpenrels) {
 		this.chnumber = chnumber;
 		this.chname = chname;
 		this.markfordelete = markfordelete;
@@ -71,11 +71,13 @@ public class Catentry implements java.io.Serializable {
 		this.field1 = field1;
 		this.field2 = field2;
 		this.field3 = field3;
+		this.offerprices = offerprices;
 		this.catgpenrels = catgpenrels;
 	}
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = IDENTITY)
+
 	@Column(name = "CATENTRY_ID", unique = true, nullable = false)
 	public Long getCatentryId() {
 		return this.catentryId;
@@ -205,6 +207,15 @@ public class Catentry implements java.io.Serializable {
 
 	public void setField3(String field3) {
 		this.field3 = field3;
+	}
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "catentry")
+	public Set<Offerprice> getOfferprices() {
+		return this.offerprices;
+	}
+
+	public void setOfferprices(Set<Offerprice> offerprices) {
+		this.offerprices = offerprices;
 	}
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "catentry")

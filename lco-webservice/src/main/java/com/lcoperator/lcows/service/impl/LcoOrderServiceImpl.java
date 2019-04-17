@@ -2,6 +2,7 @@ package com.lcoperator.lcows.service.impl;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -12,10 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.lcoperator.lcodb.model.Catentry;
+import com.lcoperator.lcodb.model.Offerprice;
 import com.lcoperator.lcodb.model.Orderitems;
 import com.lcoperator.lcodb.model.Orders;
 import com.lcoperator.lcodb.model.User;
 import com.lcoperator.lcodb.repository.CatentryRepository;
+import com.lcoperator.lcodb.repository.OfferpriceRepository;
 import com.lcoperator.lcodb.repository.OrdersRepository;
 import com.lcoperator.lcodb.repository.UserRepository;
 import com.lcoperator.lcows.common.OrderItemDto;
@@ -38,12 +41,19 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 	@Autowired
 	private UserRepository userRepository;
 
+	@Autowired
+	private OfferpriceRepository offerpriceRepository;
+
 	@Override
 	@Transactional
 	public long addOrderItem(OrderReqDto request) throws LcoOrderException {
 		Optional<User> user = userRepository.findById(request.getUserId());
 		if (!user.isPresent()) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "user not found");
+		}
+		List<Catentry> channels = catentryRepository.findAllChannels(request.getProductIds());
+		if (channels.isEmpty() || channels.size() < request.getProductIds().size()) {
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "Invalid channel list");
 		}
 		Orders orders = ordersRepository.findOrder(request.getUserId(), OrderStatusEnum.NEW.getStatusName());
 		if (orders == null) {// create new order
@@ -56,9 +66,28 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 			orders.setTotaltax(BigDecimal.ZERO);
 		}
 		// add order item
-		Orderitems oi = new Orderitems(orders, user.get(), request.getProductIds().get(0), BigDecimal.ZERO,
-				OrderStatusEnum.NEW.getStatusName(), new Date(), new Date(), -1, BigDecimal.ZERO, BigDecimal.ZERO);
-		orders.getOrderitemses().add(oi);
+		BigDecimal totalPrice = BigDecimal.ZERO;
+		for (Catentry channel : channels) {
+			List<Offerprice> offerPrice = channel.getOfferprices().stream()
+					.filter(ch -> ch.getPricetype().equals("list")).collect(Collectors.toList());
+			// TODO: test the logic
+			offerPrice.sort((op1, op2) -> (int) (op2.getPrecedence() - op1.getPrecedence()));
+
+			BigDecimal price = BigDecimal.ZERO;
+			long offerId = 0;
+			if (!offerPrice.isEmpty()) {
+				price = offerPrice.get(0).getPrice();
+				offerId = offerPrice.get(0).getOfferId();
+			}
+
+			Orderitems oi = new Orderitems(orders, user.get(), channel.getCatentryId(), price,
+					OrderStatusEnum.NEW.getStatusName(), new Date(), new Date(), offerId, BigDecimal.ZERO,
+					BigDecimal.ZERO);
+			orders.getOrderitemses().add(oi);
+			// add price
+			totalPrice.add(price);
+		}
+		orders.setTotalproduct(totalPrice);
 		ordersRepository.save(orders);
 		return orders.getOrdersId();
 	}
@@ -73,12 +102,17 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 		Orders orders2 = orders.get();
 		response.setOrderId(orders2.getOrdersId());
 		response.setUserId(orders2.getUser().getUserId());
+		response.setTotalPrice(orders2.getTotalproduct().doubleValue());
+		response.setLastUpdate(orders2.getLastupdate().toString());
+		response.setCreationDate(orders2.getTimeplaced().toString());
 		response.setChannels(orders2.getOrderitemses().stream().map(oi -> {
 			OrderItemDto oiDto = new OrderItemDto();
+			oiDto.setOrderitemsId(oi.getOrderitemsId());
 			oiDto.setLastcreate(oi.getLastcreate());
 			oiDto.setLastupdate(oi.getLastupdate());
 			oiDto.setProductprice(oi.getProductprice().doubleValue());
 			oiDto.setStatus(oi.getStatus());
+			oiDto.setOfferId(oi.getOfferId());
 			ProductDto dto = new ProductDto();
 			dto.setCatentryId(oi.getProductId());
 			Optional<Catentry> channel = catentryRepository.findById(oi.getProductId());
