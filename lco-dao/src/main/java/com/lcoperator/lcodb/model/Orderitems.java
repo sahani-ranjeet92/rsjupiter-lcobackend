@@ -27,12 +27,12 @@ public class Orderitems implements java.io.Serializable {
 	private Long orderitemsId;
 	private Orders orders;
 	private User user;
-	private long productId;
+	private Long productId;
 	private BigDecimal productprice;
 	private String status;
 	private Date lastcreate;
 	private Date lastupdate;
-	private long offerId;
+	private Long offerId;
 	private BigDecimal taxamount;
 	private BigDecimal totaladjustment;
 	private Integer field1;
@@ -107,11 +107,11 @@ public class Orderitems implements java.io.Serializable {
 	}
 
 	@Column(name = "PRODUCT_ID", nullable = false)
-	public long getProductId() {
+	public Long getProductId() {
 		return this.productId;
 	}
 
-	public void setProductId(long productId) {
+	public void setProductId(Long productId) {
 		this.productId = productId;
 	}
 
@@ -154,11 +154,11 @@ public class Orderitems implements java.io.Serializable {
 	}
 
 	@Column(name = "OFFER_ID", nullable = false)
-	public long getOfferId() {
+	public Long getOfferId() {
 		return this.offerId;
 	}
 
-	public void setOfferId(long offerId) {
+	public void setOfferId(Long offerId) {
 		this.offerId = offerId;
 	}
 

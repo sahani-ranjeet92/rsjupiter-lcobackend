@@ -8,7 +8,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class OrderResponseDto {
 
-	private List<ProductDto> channels = null;
+	private List<OrderItemDto> channels = null;
 	private List<PackageInfo> packages = null;
 	private Long userId;
 	private Long orderId;
@@ -18,11 +18,11 @@ public class OrderResponseDto {
 	private String creationDate;
 	private String lastUpdate;
 
-	public List<ProductDto> getChannels() {
+	public List<OrderItemDto> getChannels() {
 		return channels;
 	}
 
-	public void setChannels(List<ProductDto> channels) {
+	public void setChannels(List<OrderItemDto> channels) {
 		this.channels = channels;
 	}
 
