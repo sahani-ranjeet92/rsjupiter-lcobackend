@@ -1,15 +1,18 @@
 package com.lcoperator.lcodb.model;
-// Generated Mar 26, 2019 11:21:18 PM by Hibernate Tools 5.1.0.Alpha1
+// Generated Apr 15, 2019 10:50:30 PM by Hibernate Tools 5.1.0.Alpha1
+
+import static javax.persistence.GenerationType.IDENTITY;
 
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import static javax.persistence.GenerationType.IDENTITY;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -39,6 +42,7 @@ public class Orders implements java.io.Serializable {
 	private Integer field1;
 	private String field2;
 	private String field3;
+	private Set<Orderitems> orderitemses = new HashSet<Orderitems>(0);
 	private Set<Suborders> suborderses = new HashSet<Suborders>(0);
 
 	public Orders() {
@@ -58,7 +62,7 @@ public class Orders implements java.io.Serializable {
 
 	public Orders(User user, BigDecimal totalproduct, BigDecimal totaltax, String description, Date timeplaced,
 			Date lastupdate, String status, BigDecimal totaladjustment, Long csrUserId, Date expiredate, Integer field1,
-			String field2, String field3, Set<Suborders> suborderses) {
+			String field2, String field3, Set<Orderitems> orderitemses, Set<Suborders> suborderses) {
 		this.user = user;
 		this.totalproduct = totalproduct;
 		this.totaltax = totaltax;
@@ -72,6 +76,7 @@ public class Orders implements java.io.Serializable {
 		this.field1 = field1;
 		this.field2 = field2;
 		this.field3 = field3;
+		this.orderitemses = orderitemses;
 		this.suborderses = suborderses;
 	}
 
@@ -206,6 +211,15 @@ public class Orders implements java.io.Serializable {
 
 	public void setField3(String field3) {
 		this.field3 = field3;
+	}
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "orders", cascade = CascadeType.ALL)
+	public Set<Orderitems> getOrderitemses() {
+		return this.orderitemses;
+	}
+
+	public void setOrderitemses(Set<Orderitems> orderitemses) {
+		this.orderitemses = orderitemses;
 	}
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "orders")

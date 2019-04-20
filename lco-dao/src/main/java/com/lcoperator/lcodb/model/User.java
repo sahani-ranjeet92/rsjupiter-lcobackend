@@ -1,14 +1,16 @@
 package com.lcoperator.lcodb.model;
-// Generated Mar 26, 2019 11:21:18 PM by Hibernate Tools 5.1.0.Alpha1
+// Generated Apr 15, 2019 10:50:30 PM by Hibernate Tools 5.1.0.Alpha1
+
+import static javax.persistence.GenerationType.IDENTITY;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import static javax.persistence.GenerationType.IDENTITY;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -34,6 +36,7 @@ public class User implements java.io.Serializable {
 	private Date dateOfBirth;
 	private Date createdTimestamp;
 	private Date updatedDateTime;
+	private Set<Orderitems> orderitemses = new HashSet<Orderitems>(0);
 	private Set<Orders> orderses = new HashSet<Orders>(0);
 	private Set<Suborders> suborderses = new HashSet<Suborders>(0);
 
@@ -48,8 +51,8 @@ public class User implements java.io.Serializable {
 	}
 
 	public User(String username, String password, String email, String firstName, String lastName, String gender,
-			String status, Date dateOfBirth, Date createdTimestamp, Date updatedDateTime, Set<Orders> orderses,
-			Set<Suborders> suborderses) {
+			String status, Date dateOfBirth, Date createdTimestamp, Date updatedDateTime, Set<Orderitems> orderitemses,
+			Set<Orders> orderses, Set<Suborders> suborderses) {
 		this.username = username;
 		this.password = password;
 		this.email = email;
@@ -60,6 +63,7 @@ public class User implements java.io.Serializable {
 		this.dateOfBirth = dateOfBirth;
 		this.createdTimestamp = createdTimestamp;
 		this.updatedDateTime = updatedDateTime;
+		this.orderitemses = orderitemses;
 		this.orderses = orderses;
 		this.suborderses = suborderses;
 	}
@@ -167,6 +171,15 @@ public class User implements java.io.Serializable {
 
 	public void setUpdatedDateTime(Date updatedDateTime) {
 		this.updatedDateTime = updatedDateTime;
+	}
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+	public Set<Orderitems> getOrderitemses() {
+		return this.orderitemses;
+	}
+
+	public void setOrderitemses(Set<Orderitems> orderitemses) {
+		this.orderitemses = orderitemses;
 	}
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "user")

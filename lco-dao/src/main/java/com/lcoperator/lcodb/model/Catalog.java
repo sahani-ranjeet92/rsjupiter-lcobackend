@@ -3,11 +3,12 @@ package com.lcoperator.lcodb.model;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import static javax.persistence.GenerationType.IDENTITY;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -45,8 +46,7 @@ public class Catalog implements java.io.Serializable {
 	}
 
 	@Id
-	@GeneratedValue(strategy = IDENTITY)
-
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "CATALOG_ID", unique = true, nullable = false)
 	public Long getCatalogId() {
 		return this.catalogId;

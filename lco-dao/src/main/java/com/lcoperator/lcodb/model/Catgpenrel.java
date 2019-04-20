@@ -2,6 +2,7 @@ package com.lcoperator.lcodb.model;
 // Generated Mar 26, 2019 11:21:18 PM by Hibernate Tools 5.1.0.Alpha1
 
 import java.util.Date;
+
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
 import javax.persistence.Column;
