@@ -34,4 +34,22 @@ public class LcoOrderManager {
 
 	}
 
+	public OrderResponseDto getOrderDetail(Long orderId) throws LcoOrderException {
+		try {
+			Validate.notNull(orderId, "orderId cannot be null");
+		} catch (IllegalArgumentException ex) {
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, ex.getMessage());
+		}
+		return orderService.getOrderDetail(orderId);
+	}
+
+	public OrderResponseDto getOrderByUserId(Long userId) throws LcoOrderException {
+		try {
+			Validate.notNull(userId, "userId cannot be null");
+		} catch (IllegalArgumentException ex) {
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, ex.getMessage());
+		}
+		return orderService.getOrderByUserId(userId);
+	}
+
 }

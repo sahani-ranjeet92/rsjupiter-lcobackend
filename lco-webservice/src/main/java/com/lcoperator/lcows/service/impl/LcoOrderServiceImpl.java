@@ -19,6 +19,7 @@ import com.lcoperator.lcodb.model.Orders;
 import com.lcoperator.lcodb.model.User;
 import com.lcoperator.lcodb.repository.CatentryRepository;
 import com.lcoperator.lcodb.repository.OfferpriceRepository;
+import com.lcoperator.lcodb.repository.OrderitemsRepository;
 import com.lcoperator.lcodb.repository.OrdersRepository;
 import com.lcoperator.lcodb.repository.UserRepository;
 import com.lcoperator.lcows.common.OrderItemDto;
@@ -44,6 +45,9 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 	@Autowired
 	private OfferpriceRepository offerpriceRepository;
 
+	@Autowired
+	private OrderitemsRepository orderitemsRepository;
+
 	@Override
 	@Transactional
 	public long addOrderItem(OrderReqDto request) throws LcoOrderException {
@@ -67,7 +71,15 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 		}
 		// add order item
 		BigDecimal totalPrice = BigDecimal.ZERO;
+		List<Long> existingProdIds = orders.getOrderitemses().stream().map(Orderitems::getProductId)
+				.collect(Collectors.toList());
 		for (Catentry channel : channels) {
+
+			// check item is already exist by prodId and new
+			if (existingProdIds.contains(channel.getCatentryId()))
+				throw new LcoOrderException(HttpStatus.BAD_REQUEST,
+						"Item is already exist in cart :" + channel.getChname());
+
 			List<Offerprice> offerPrice = channel.getOfferprices().stream()
 					.filter(ch -> ch.getPricetype().equals("list")).collect(Collectors.toList());
 			// TODO: test the logic
@@ -98,8 +110,21 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 		if (!orders.isPresent()) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "order does not exist!");
 		}
+		return mapOrdersToOrderResponseDto(orders.get());
+	}
+
+	@Override
+	public OrderResponseDto getOrderByUserId(Long userId) throws LcoOrderException {
+		Orders orders = ordersRepository.findOrder(userId, OrderStatusEnum.NEW.getStatusName());
+		if (orders == null) {
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "order does not exist!");
+		}
+		return mapOrdersToOrderResponseDto(orders);
+
+	}
+
+	private OrderResponseDto mapOrdersToOrderResponseDto(Orders orders2) {
 		OrderResponseDto response = new OrderResponseDto();
-		Orders orders2 = orders.get();
 		response.setOrderId(orders2.getOrdersId());
 		response.setUserId(orders2.getUser().getUserId());
 		response.setTotalPrice(orders2.getTotalproduct().doubleValue());

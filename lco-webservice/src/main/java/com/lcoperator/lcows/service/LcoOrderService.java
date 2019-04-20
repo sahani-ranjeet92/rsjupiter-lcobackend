@@ -14,4 +14,6 @@ public interface LcoOrderService {
 
 	OrderResponseDto getOrderDetail(long orderid) throws LcoOrderException;
 
+	OrderResponseDto getOrderByUserId(Long userId) throws LcoOrderException;
+
 }
