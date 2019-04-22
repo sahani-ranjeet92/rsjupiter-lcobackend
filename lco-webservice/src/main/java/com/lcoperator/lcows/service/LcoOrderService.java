@@ -16,4 +16,6 @@ public interface LcoOrderService {
 
 	OrderResponseDto getOrderByUserId(Long userId) throws LcoOrderException;
 
+	void orderCheckout(Long orderId, Long userId) throws LcoOrderException;
+
 }

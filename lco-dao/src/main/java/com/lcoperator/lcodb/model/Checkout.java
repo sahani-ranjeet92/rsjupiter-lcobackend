@@ -53,7 +53,7 @@ public class Checkout implements java.io.Serializable {
 	}
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "CHECKOUT_ID", unique = true, nullable = false)
 	public Long getCheckoutId() {
 		return this.checkoutId;

@@ -8,16 +8,19 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.lcoperator.lcodb.model.Catentry;
+import com.lcoperator.lcodb.model.Checkout;
 import com.lcoperator.lcodb.model.Offerprice;
 import com.lcoperator.lcodb.model.Orderitems;
 import com.lcoperator.lcodb.model.Orders;
 import com.lcoperator.lcodb.model.User;
 import com.lcoperator.lcodb.repository.CatentryRepository;
+import com.lcoperator.lcodb.repository.CheckoutRepository;
 import com.lcoperator.lcodb.repository.OfferpriceRepository;
 import com.lcoperator.lcodb.repository.OrderitemsRepository;
 import com.lcoperator.lcodb.repository.OrdersRepository;
@@ -47,6 +50,9 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 
 	@Autowired
 	private OrderitemsRepository orderitemsRepository;
+
+	@Autowired
+	private CheckoutRepository checkoutRepository;
 
 	@Override
 	@Transactional
@@ -149,6 +155,36 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 			return oiDto;
 		}).collect(Collectors.toList()));
 		return response;
+	}
+
+	@Override
+	@Transactional
+	public void orderCheckout(Long orderId, Long userId) throws LcoOrderException {
+		Orders orders = ordersRepository.findOrder(orderId, userId, OrderStatusEnum.NEW.getStatusName());
+		try {
+			Validate.notNull(orders, "order does not exist!");
+			Validate.notEmpty(orders.getOrderitemses(), "order is empty!");
+		} catch (NullPointerException | IllegalArgumentException ex) {
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, ex.getMessage());
+		}
+		// update order status to completed
+		orders.setStatus(OrderStatusEnum.COMPLETED.getStatusName());
+		Date currTime = new Date();
+		orders.setLastupdate(currTime);
+		orders.getOrderitemses().forEach(oi -> {
+			oi.setStatus(OrderStatusEnum.COMPLETED.getStatusName());
+		});
+		ordersRepository.save(orders);
+
+		Checkout checkout = new Checkout();
+		checkout.setLastupdate(currTime);
+		checkout.setTimeplaced(currTime);
+		checkout.setOrdersId(orders.getOrdersId());
+		checkout.setStatus("Deactive");
+		checkout.setUserId(userId);
+		
+		checkoutRepository.save(checkout);
+
 	}
 
 }
