@@ -25,7 +25,7 @@ public class LcoProductController extends LcoBaseController {
 	@Autowired
 	private LcoProductManager manager;
 
-	@GetMapping(name = "/getProductList", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping("/getProductList")
 	public ResponseEntity<LcoResponseInfo> getProductList() {
 		try {
 			List<ProductDto> data = manager.getProductList();
