@@ -1,5 +1,7 @@
 package com.lcoperator.lcows.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +47,17 @@ public class LcoUserController extends LcoBaseController {
 			return getSuccessResponseInfo(HttpStatus.OK.getReasonPhrase(), data, HttpStatus.OK);
 		} catch (LcoUserException ex) {
 			return getErrorResponseInfo(ex.getMessage(), ex.getStatus());
+		} catch (Exception ex) {
+			return getErrorResponseInfo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@GetMapping("/getUserList")
+	public ResponseEntity<LcoResponseInfo> getUserList() {
+		try {
+			List<UserResonseDto> data = manager.getUserList();
+			return getSuccessResponseInfo(HttpStatus.OK.getReasonPhrase(), data, HttpStatus.OK);
 		} catch (Exception ex) {
 			return getErrorResponseInfo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
