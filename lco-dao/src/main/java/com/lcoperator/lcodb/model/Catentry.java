@@ -4,6 +4,8 @@ package com.lcoperator.lcodb.model;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -209,7 +211,7 @@ public class Catentry implements java.io.Serializable {
 		this.field3 = field3;
 	}
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "catentry")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "catentry", cascade = { CascadeType.ALL })
 	public Set<Offerprice> getOfferprices() {
 		return this.offerprices;
 	}

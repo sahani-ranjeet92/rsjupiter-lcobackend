@@ -1,5 +1,9 @@
 package com.lcoperator.lcows.service.impl;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,11 +52,24 @@ public class LcoProductServiceImpl implements LcoProductService {
 		Date lastupdate = new Date();
 		Catentry catentry = new Catentry(prod.getChnumber(), prod.getChname(), 0, lastupdate, lastupdate, lastupdate,
 				lastupdate, lastupdate);
-		cRepository.save(catentry);
 		// save price
-		Offerprice offerprice = new Offerprice(catentry, lastupdate, lastupdate, 1L, 1, lastupdate,
-				new BigDecimal(prod.getPrice()));
-		offerprice.setPricetype("list");
+				Offerprice offerprice = new Offerprice(catentry, lastupdate, lastupdate, 1L, 1, lastupdate,
+						new BigDecimal(prod.getPrice()));
+				offerprice.setPricetype("list");
+				catentry.getOfferprices().add(offerprice);
+		cRepository.save(catentry);
+		
+		// save file
+				String pathname = "D:/temp/product_" + catentry.getCatentryId() + "_" + prod.getChnumber() + ".jpeg";
+				File file = new File(pathname);
+				try (FileOutputStream outputStream = new FileOutputStream(file);) {
+					outputStream.write(prod.getChannelImage().getBytes());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				catentry.setUrl(pathname);
+				
+		cRepository.save(catentry);
 		return catentry.getCatentryId();
 	}
 

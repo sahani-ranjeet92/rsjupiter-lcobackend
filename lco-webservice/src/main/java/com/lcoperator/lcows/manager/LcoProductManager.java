@@ -31,6 +31,7 @@ public class LcoProductManager {
 			Validate.notEmpty(prod.getChname());
 			Validate.notEmpty(prod.getChnumber());
 			Validate.notNaN(prod.getPrice());
+			Validate.notNull(prod.getChannelImage());
 		} catch (NullPointerException | IllegalArgumentException ex) {
 			throw new LcoProductException(HttpStatus.BAD_REQUEST, ex.getMessage());
 		}
