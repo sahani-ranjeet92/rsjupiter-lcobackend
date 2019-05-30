@@ -26,7 +26,7 @@ public class LcoOrderManager {
 			Validate.notNull(request.getUserId(), "UserId cannot be null");
 			Validate.isTrue(!request.getPackageId().isEmpty() || !request.getProductIds().isEmpty(),
 					"Either productid or packageid must be present");
-		} catch (IllegalArgumentException ex) {
+		} catch (NullPointerException | IllegalArgumentException ex) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, ex.getMessage());
 		}
 		long orderid = orderService.addOrderItem(request);
@@ -37,7 +37,7 @@ public class LcoOrderManager {
 	public OrderResponseDto getOrderDetail(Long orderId) throws LcoOrderException {
 		try {
 			Validate.notNull(orderId, "orderId cannot be null");
-		} catch (IllegalArgumentException ex) {
+		} catch (NullPointerException | IllegalArgumentException ex) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, ex.getMessage());
 		}
 		return orderService.getOrderDetail(orderId);
@@ -46,10 +46,21 @@ public class LcoOrderManager {
 	public OrderResponseDto getOrderByUserId(Long userId) throws LcoOrderException {
 		try {
 			Validate.notNull(userId, "userId cannot be null");
-		} catch (IllegalArgumentException ex) {
+		} catch (NullPointerException | IllegalArgumentException ex) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, ex.getMessage());
 		}
 		return orderService.getOrderByUserId(userId);
+	}
+
+	public void checkout(Long orderId, Long userId) throws LcoOrderException {
+		try {
+			Validate.notNull(orderId, "orderId cannot be null");
+			Validate.notNull(userId, "UserId cannot be null");
+		} catch (NullPointerException | IllegalArgumentException ex) {
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, ex.getMessage());
+		}
+		orderService.orderCheckout(orderId, userId);
+
 	}
 
 }

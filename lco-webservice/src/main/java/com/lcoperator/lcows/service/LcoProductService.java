@@ -12,4 +12,12 @@ public interface LcoProductService {
 
 	List<ProductDto> getProductList();
 
+	long addProduct(ProductDto prod);
+
+	long updateProduct(ProductDto prod);
+
+	long removeProduct(long catentryId);
+
+	ProductDto getProduct(long catentryId);
+
 }

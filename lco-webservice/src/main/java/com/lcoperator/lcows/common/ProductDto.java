@@ -3,6 +3,9 @@ package com.lcoperator.lcows.common;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ProductDto {
 	private Long catentryId;
@@ -10,6 +13,8 @@ public class ProductDto {
 	private String chname;
 	private String url;
 	private double price;
+	@JsonIgnore
+	private MultipartFile channelImage;
 
 	public Long getCatentryId() {
 		return catentryId;
@@ -49,6 +54,16 @@ public class ProductDto {
 
 	public void setPrice(double price) {
 		this.price = price;
+	}
+
+	@JsonIgnore
+	public MultipartFile getChannelImage() {
+		return channelImage;
+	}
+
+	@JsonIgnore
+	public void setChannelImage(MultipartFile channelImage) {
+		this.channelImage = channelImage;
 	}
 
 	@Override

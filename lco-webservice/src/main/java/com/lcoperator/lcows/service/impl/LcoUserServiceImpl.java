@@ -1,6 +1,8 @@
 package com.lcoperator.lcows.service.impl;
 
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.transaction.Transactional;
 
@@ -47,6 +49,11 @@ public class LcoUserServiceImpl implements LcoUserService {
 		UserResonseDto response = new UserResonseDto();
 		response.setUserId(user.getUserId());
 		return response;
+	}
+
+	@Override
+	public Iterable<User> getUserList() {
+		return userRepository.findAll();
 	}
 
 }
