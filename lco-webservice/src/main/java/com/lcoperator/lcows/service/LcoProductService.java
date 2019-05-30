@@ -18,4 +18,6 @@ public interface LcoProductService {
 
 	long removeProduct(long catentryId);
 
+	ProductDto getProduct(long catentryId);
+
 }

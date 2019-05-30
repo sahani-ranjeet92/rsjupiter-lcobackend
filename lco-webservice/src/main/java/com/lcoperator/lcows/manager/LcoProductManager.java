@@ -60,4 +60,13 @@ public class LcoProductManager {
 		return productService.removeProduct(catentryId);
 	}
 
+	public ProductDto getProduct(long catentryId) throws LcoProductException {
+		try {
+			Validate.notNull(catentryId);
+		} catch (NullPointerException | IllegalArgumentException ex) {
+			throw new LcoProductException(HttpStatus.BAD_REQUEST, ex.getMessage());
+		}
+		return productService.getProduct(catentryId);
+	}
+
 }
