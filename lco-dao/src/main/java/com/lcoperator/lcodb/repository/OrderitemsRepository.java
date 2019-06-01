@@ -13,4 +13,7 @@ public interface OrderitemsRepository extends CrudRepository<Orderitems, Long> {
 	@Query("From Orderitems oi WHERE oi.orders.ordersId=:orderId and oi.productId=:catentryId and oi.status=:status")
 	Orderitems findByProductIdAndStatus(@Param("orderId") Long orderId, @Param("catentryId") Long catentryId,@Param("status") String statusName);
 
+	@Query("SELECT COUNT(oi.orderitemsId) From Orderitems oi WHERE oi.orders.ordersId=:orderId")
+	int getItemCountByOrderId(@Param("orderId") Long orderId);
+
 }

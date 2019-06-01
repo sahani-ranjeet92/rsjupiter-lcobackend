@@ -29,7 +29,7 @@ public class LcoProductController extends LcoBaseController {
 	@Autowired
 	private LcoProductManager manager;
 
-	@GetMapping("/getProductList")
+	@GetMapping(value = "/getProductList", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> getProductList() {
 		try {
 			List<ProductDto> data = manager.getProductList();
@@ -41,7 +41,7 @@ public class LcoProductController extends LcoBaseController {
 
 	}
 
-	@PostMapping("/addProduct")
+	@PostMapping(value = "/addProduct", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> addProduct(ProductDto prod) {
 		try {
 			long id = manager.addProduct(prod);
@@ -56,7 +56,7 @@ public class LcoProductController extends LcoBaseController {
 
 	}
 
-	@PostMapping("/updateProduct")
+	@PostMapping(value = "/updateProduct", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> updateProduct(ProductDto prod) {
 		try {
 			long id = manager.updateProduct(prod);
@@ -73,7 +73,7 @@ public class LcoProductController extends LcoBaseController {
 
 	}
 
-	@PostMapping("/removeProduct")
+	@PostMapping(value = "/removeProduct", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> removeProduct(@RequestParam("id") long catentryId) {
 		try {
 			long id = manager.removeProduct(catentryId);
@@ -90,7 +90,7 @@ public class LcoProductController extends LcoBaseController {
 
 	}
 
-	@PostMapping("/getProduct")
+	@PostMapping(value = "/getProduct", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> getProduct(@RequestParam("id") long catentryId) {
 		try {
 			ProductDto prod = manager.getProduct(catentryId);

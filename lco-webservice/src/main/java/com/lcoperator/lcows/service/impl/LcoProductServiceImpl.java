@@ -94,6 +94,7 @@ public class LcoProductServiceImpl implements LcoProductService {
 			if (offerPrice.isPresent())
 				offerPrice.get().setPrice(new BigDecimal(prod.getPrice()));
 			cRepository.save(catentry);
+			return 1;
 		}
 		return 0;
 	}

@@ -17,6 +17,7 @@ public class OrderResponseDto {
 	private String orderStatus;
 	private String creationDate;
 	private String lastUpdate;
+	private int quantity;
 
 	public List<OrderItemDto> getChannels() {
 		return channels;
@@ -90,18 +91,26 @@ public class OrderResponseDto {
 		this.lastUpdate = lastUpdate;
 	}
 
+	public int getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
+
 	@Override
 	public String toString() {
 		return new ToStringBuilder(this).append("channels", channels).append("packages", packages)
 				.append("userId", userId).append("orderId", orderId).append("totalPrice", totalPrice)
 				.append("totalTax", totalTax).append("orderStatus", orderStatus).append("creationDate", creationDate)
-				.append("lastUpdate", lastUpdate).toString();
+				.append("lastUpdate", lastUpdate).append("quantity", quantity).toString();
 	}
 
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder().append(creationDate).append(packages).append(lastUpdate).append(userId)
-				.append(channels).append(totalTax).append(orderStatus).append(orderId).append(totalPrice).toHashCode();
+				.append(channels).append(totalTax).append(orderStatus).append(orderId).append(totalPrice).append(quantity).toHashCode();
 	}
 
 	@Override
@@ -116,7 +125,7 @@ public class OrderResponseDto {
 		return new EqualsBuilder().append(creationDate, rhs.creationDate).append(packages, rhs.packages)
 				.append(lastUpdate, rhs.lastUpdate).append(userId, rhs.userId).append(channels, rhs.channels)
 				.append(totalTax, rhs.totalTax).append(orderStatus, rhs.orderStatus).append(orderId, rhs.orderId)
-				.append(totalPrice, rhs.totalPrice).isEquals();
+				.append(totalPrice, rhs.totalPrice).append(quantity, rhs.quantity).isEquals();
 	}
 
 }

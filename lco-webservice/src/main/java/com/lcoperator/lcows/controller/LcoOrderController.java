@@ -1,5 +1,7 @@
 package com.lcoperator.lcows.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -68,6 +70,17 @@ public class LcoOrderController extends LcoBaseController {
 		} catch (LcoOrderException ex) {
 			return getErrorResponseInfo(ex.getMessage(), ex.getStatus());
 		} catch (Exception ex) {
+			return getErrorResponseInfo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@RequestMapping(value = "/getOrderList", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<LcoResponseInfo> getOrderList() {
+		try {
+			List<OrderResponseDto> data = manager.getOrderList();
+			return getSuccessResponseInfo(HttpStatus.OK.getReasonPhrase(), data, HttpStatus.OK);
+		}catch (Exception ex) {
 			return getErrorResponseInfo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}

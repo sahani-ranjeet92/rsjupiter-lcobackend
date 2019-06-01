@@ -1,6 +1,7 @@
 package com.lcoperator.lcows.service.impl;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -112,11 +113,14 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 
 	@Override
 	public OrderResponseDto getOrderDetail(long orderid) throws LcoOrderException {
-		Optional<Orders> orders = ordersRepository.findById(orderid);
-		if (!orders.isPresent()) {
+		Optional<Orders> ordersOpt = ordersRepository.findById(orderid);
+		if (!ordersOpt.isPresent()) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "order does not exist!");
 		}
-		return mapOrdersToOrderResponseDto(orders.get());
+		Orders orders = ordersOpt.get();
+		OrderResponseDto orderResponse = mapOrdersToOrderResponseDto(orders);
+		setChannelList(orders, orderResponse);
+		return orderResponse;
 	}
 
 	@Override
@@ -125,36 +129,10 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 		if (orders == null) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "order does not exist!");
 		}
-		return mapOrdersToOrderResponseDto(orders);
+		OrderResponseDto orderResponse = mapOrdersToOrderResponseDto(orders);
+		setChannelList(orders, orderResponse);
+		return orderResponse;
 
-	}
-
-	private OrderResponseDto mapOrdersToOrderResponseDto(Orders orders2) {
-		OrderResponseDto response = new OrderResponseDto();
-		response.setOrderId(orders2.getOrdersId());
-		response.setUserId(orders2.getUser().getUserId());
-		response.setTotalPrice(orders2.getTotalproduct().doubleValue());
-		response.setLastUpdate(orders2.getLastupdate().toString());
-		response.setCreationDate(orders2.getTimeplaced().toString());
-		response.setChannels(orders2.getOrderitemses().stream().map(oi -> {
-			OrderItemDto oiDto = new OrderItemDto();
-			oiDto.setOrderitemsId(oi.getOrderitemsId());
-			oiDto.setLastcreate(oi.getLastcreate());
-			oiDto.setLastupdate(oi.getLastupdate());
-			oiDto.setProductprice(oi.getProductprice().doubleValue());
-			oiDto.setStatus(oi.getStatus());
-			oiDto.setOfferId(oi.getOfferId());
-			ProductDto dto = new ProductDto();
-			dto.setCatentryId(oi.getProductId());
-			Optional<Catentry> channel = catentryRepository.findById(oi.getProductId());
-			if (channel.isPresent()) {
-				dto.setChname(channel.get().getChname());
-				dto.setChnumber(channel.get().getChnumber());
-			}
-			oiDto.setProduct(dto);
-			return oiDto;
-		}).collect(Collectors.toList()));
-		return response;
 	}
 
 	@Override
@@ -182,9 +160,53 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 		checkout.setOrdersId(orders.getOrdersId());
 		checkout.setStatus("Deactive");
 		checkout.setUserId(userId);
-		
+
 		checkoutRepository.save(checkout);
 
+	}
+
+	@Override
+	public List<OrderResponseDto> getOrderList() {
+		List<OrderResponseDto> list = new ArrayList<>();
+		ordersRepository.findAll().forEach(orders -> {
+			OrderResponseDto orderResponse = mapOrdersToOrderResponseDto(orders);
+			orderResponse.setQuantity(orderitemsRepository.getItemCountByOrderId(orders.getOrdersId()));
+			list.add(orderResponse);
+		});
+		return list;
+	}
+
+	private OrderResponseDto mapOrdersToOrderResponseDto(Orders orders2) {
+		OrderResponseDto response = new OrderResponseDto();
+		response.setOrderId(orders2.getOrdersId());
+		response.setUserId(orders2.getUser().getUserId());
+		response.setTotalPrice(orders2.getTotalproduct().doubleValue());
+		response.setTotalTax(orders2.getTotaltax().doubleValue());
+		response.setLastUpdate(orders2.getLastupdate().toString());
+		response.setCreationDate(orders2.getTimeplaced().toString());
+		response.setOrderStatus(orders2.getStatus());
+		return response;
+	}
+
+	private void setChannelList(Orders orders2, OrderResponseDto response) {
+		response.setChannels(orders2.getOrderitemses().stream().map(oi -> {
+			OrderItemDto oiDto = new OrderItemDto();
+			oiDto.setOrderitemsId(oi.getOrderitemsId());
+			oiDto.setLastcreate(oi.getLastcreate());
+			oiDto.setLastupdate(oi.getLastupdate());
+			oiDto.setProductprice(oi.getProductprice().doubleValue());
+			oiDto.setStatus(oi.getStatus());
+			oiDto.setOfferId(oi.getOfferId());
+			ProductDto dto = new ProductDto();
+			dto.setCatentryId(oi.getProductId());
+			Optional<Catentry> channel = catentryRepository.findById(oi.getProductId());
+			if (channel.isPresent()) {
+				dto.setChname(channel.get().getChname());
+				dto.setChnumber(channel.get().getChnumber());
+			}
+			oiDto.setProduct(dto);
+			return oiDto;
+		}).collect(Collectors.toList()));
 	}
 
 }
