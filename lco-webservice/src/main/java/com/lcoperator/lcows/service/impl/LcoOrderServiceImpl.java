@@ -104,7 +104,7 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 					BigDecimal.ZERO);
 			orders.getOrderitemses().add(oi);
 			// add price
-			totalPrice.add(price);
+			totalPrice = totalPrice.add(price);
 		}
 		orders.setTotalproduct(totalPrice);
 		ordersRepository.save(orders);

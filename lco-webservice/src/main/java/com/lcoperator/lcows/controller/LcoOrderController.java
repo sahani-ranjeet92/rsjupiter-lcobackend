@@ -44,15 +44,23 @@ public class LcoOrderController extends LcoBaseController {
 		}
 	}
 
-	@RequestMapping(value = "/getOrder/{type}/{id:[\\d]+}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<LcoResponseInfo> getOrderDetail(@PathVariable("type") String type,
-			@PathVariable("id") Long id) {
+	@RequestMapping(value = "/getOrderDetail", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<LcoResponseInfo> getOrderDetail(@RequestParam("orderId") Long id) {
 		try {
-			OrderResponseDto data = null;
-			if (type.equalsIgnoreCase("orderId"))
-				data = manager.getOrderDetail(id);
-			else
-				data = manager.getOrderByUserId(id);
+			OrderResponseDto data = manager.getOrderDetail(id);
+			return getSuccessResponseInfo(HttpStatus.OK.getReasonPhrase(), data, HttpStatus.OK);
+		} catch (LcoOrderException ex) {
+			return getErrorResponseInfo(ex.getMessage(), ex.getStatus());
+		} catch (Exception ex) {
+			return getErrorResponseInfo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@RequestMapping(value = "/getOrderByUserId", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<LcoResponseInfo> getOrderByUserId(@RequestParam("userId") Long id) {
+		try {
+			OrderResponseDto data = manager.getOrderByUserId(id);
 			return getSuccessResponseInfo(HttpStatus.OK.getReasonPhrase(), data, HttpStatus.OK);
 		} catch (LcoOrderException ex) {
 			return getErrorResponseInfo(ex.getMessage(), ex.getStatus());
@@ -74,13 +82,13 @@ public class LcoOrderController extends LcoBaseController {
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+
 	@RequestMapping(value = "/getOrderList", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> getOrderList() {
 		try {
 			List<OrderResponseDto> data = manager.getOrderList();
 			return getSuccessResponseInfo(HttpStatus.OK.getReasonPhrase(), data, HttpStatus.OK);
-		}catch (Exception ex) {
+		} catch (Exception ex) {
 			return getErrorResponseInfo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
