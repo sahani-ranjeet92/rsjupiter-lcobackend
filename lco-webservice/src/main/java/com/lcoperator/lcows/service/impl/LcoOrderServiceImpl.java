@@ -3,8 +3,10 @@ package com.lcoperator.lcows.service.impl;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -31,6 +33,7 @@ import com.lcoperator.lcows.common.OrderReqDto;
 import com.lcoperator.lcows.common.OrderResponseDto;
 import com.lcoperator.lcows.common.OrderStatusEnum;
 import com.lcoperator.lcows.common.ProductDto;
+import com.lcoperator.lcows.common.RemoveOrderItemReqDto;
 import com.lcoperator.lcows.exception.LcoOrderException;
 import com.lcoperator.lcows.service.LcoOrderService;
 
@@ -77,7 +80,7 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 			orders.setTotaltax(BigDecimal.ZERO);
 		}
 		// add order item
-		BigDecimal totalPrice = BigDecimal.ZERO;
+		BigDecimal totalPrice = orders.getTotalproduct();
 		List<Long> existingProdIds = orders.getOrderitemses().stream().map(Orderitems::getProductId)
 				.collect(Collectors.toList());
 		for (Catentry channel : channels) {
@@ -107,6 +110,35 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 			totalPrice = totalPrice.add(price);
 		}
 		orders.setTotalproduct(totalPrice);
+		ordersRepository.save(orders);
+		return orders.getOrdersId();
+	}
+
+	@Override
+	@Transactional
+	public long removeOrderItem(RemoveOrderItemReqDto request) throws LcoOrderException {
+
+		Orders orders = ordersRepository.findOrder(request.getOrderId(), request.getUserId(),
+				OrderStatusEnum.NEW.getStatusName());
+		if (orders == null) {// create new order
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "order not found");
+		}
+		// remove order item
+		Set<Orderitems> orderitemses = new HashSet<>(orders.getOrderitemses());
+		double totalProductPrice = orderitemses.stream().map(oi -> {
+			if (oi.getOrderitemsId().longValue() == request.getOrderItemId()) {
+				orders.getOrderitemses().remove(oi);
+				orderitemsRepository.delete(oi);
+				return BigDecimal.ZERO;
+			} else {
+				return oi.getProductprice();
+			}
+
+		}).collect(Collectors.summingDouble((BigDecimal::doubleValue)));
+		// double totalProductPrice =
+		// orders.getOrderitemses().stream().map(Orderitems::getProductprice)
+		// .collect(Collectors.summingDouble((BigDecimal::doubleValue)));
+		orders.setTotalproduct(new BigDecimal(totalProductPrice));
 		ordersRepository.save(orders);
 		return orders.getOrdersId();
 	}

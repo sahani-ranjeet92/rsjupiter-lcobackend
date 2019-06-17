@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.lcoperator.lcows.common.OrderReqDto;
 import com.lcoperator.lcows.common.OrderResponseDto;
+import com.lcoperator.lcows.common.RemoveOrderItemReqDto;
 import com.lcoperator.lcows.exception.LcoOrderException;
 import com.lcoperator.lcows.service.LcoOrderService;
 
@@ -34,6 +35,19 @@ public class LcoOrderManager {
 		long orderid = orderService.addOrderItem(request);
 		return orderService.getOrderDetail(orderid);
 
+	}
+
+	public OrderResponseDto removeOrderItem(RemoveOrderItemReqDto request) throws LcoOrderException {
+		try {
+			Validate.notNull(request, "Invalid input request");
+			Validate.notNull(request.getUserId(), "UserId cannot be null");
+			Validate.notNull(request.getOrderId(), "OrdrerId cannot be null");
+			Validate.notNull(request.getOrderItemId(), "OrderItemId cannot be null");
+		} catch (NullPointerException | IllegalArgumentException ex) {
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, ex.getMessage());
+		}
+		long orderid = orderService.removeOrderItem(request);
+		return orderService.getOrderDetail(orderid);
 	}
 
 	public OrderResponseDto getOrderDetail(Long orderId) throws LcoOrderException {
