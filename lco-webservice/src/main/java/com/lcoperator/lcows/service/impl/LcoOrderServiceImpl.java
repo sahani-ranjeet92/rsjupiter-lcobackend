@@ -63,18 +63,18 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 	public long addOrderItem(OrderReqDto request) throws LcoOrderException {
 		Optional<User> user = userRepository.findById(request.getUserId());
 		if (!user.isPresent()) {
-			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "user not found");
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "Either order not found or completed");
 		}
 		List<Catentry> channels = catentryRepository.findAllChannels(request.getProductIds());
 		if (channels.isEmpty() || channels.size() < request.getProductIds().size()) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "Invalid channel list");
 		}
-		Orders orders = ordersRepository.findOrder(request.getUserId(), OrderStatusEnum.NEW.getStatusName());
+		Orders orders = ordersRepository.findOrder(request.getUserId(), OrderStatusEnum.NEW.getStatus());
 		if (orders == null) {// create new order
 			orders = new Orders();
 			orders.setUser(user.get());
 			orders.setTimeplaced(new Date());
-			orders.setStatus(OrderStatusEnum.NEW.getStatusName());
+			orders.setStatus(OrderStatusEnum.NEW.getStatus());
 			orders.setTotaladjustment(BigDecimal.ZERO);
 			orders.setTotalproduct(BigDecimal.ZERO);
 			orders.setTotaltax(BigDecimal.ZERO);
@@ -103,8 +103,7 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 			}
 
 			Orderitems oi = new Orderitems(orders, user.get(), channel.getCatentryId(), price,
-					OrderStatusEnum.NEW.getStatusName(), new Date(), new Date(), offerId, BigDecimal.ZERO,
-					BigDecimal.ZERO);
+					OrderStatusEnum.NEW.getStatus(), new Date(), new Date(), offerId, BigDecimal.ZERO, BigDecimal.ZERO);
 			orders.getOrderitemses().add(oi);
 			// add price
 			totalPrice = totalPrice.add(price);
@@ -119,9 +118,9 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 	public long removeOrderItem(RemoveOrderItemReqDto request) throws LcoOrderException {
 
 		Orders orders = ordersRepository.findOrder(request.getOrderId(), request.getUserId(),
-				OrderStatusEnum.NEW.getStatusName());
+				OrderStatusEnum.NEW.getStatus());
 		if (orders == null) {// create new order
-			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "order not found");
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "Either order not found or completed");
 		}
 		// remove order item
 		Set<Orderitems> orderitemses = new HashSet<>(orders.getOrderitemses());
@@ -157,7 +156,7 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 
 	@Override
 	public OrderResponseDto getOrderByUserId(Long userId) throws LcoOrderException {
-		Orders orders = ordersRepository.findOrder(userId, OrderStatusEnum.NEW.getStatusName());
+		Orders orders = ordersRepository.findOrder(userId, OrderStatusEnum.NEW.getStatus());
 		if (orders == null) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "order does not exist!");
 		}
@@ -170,7 +169,7 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 	@Override
 	@Transactional
 	public void orderCheckout(Long orderId, Long userId) throws LcoOrderException {
-		Orders orders = ordersRepository.findOrder(orderId, userId, OrderStatusEnum.NEW.getStatusName());
+		Orders orders = ordersRepository.findOrder(orderId, userId, OrderStatusEnum.NEW.getStatus());
 		try {
 			Validate.notNull(orders, "order does not exist!");
 			Validate.notEmpty(orders.getOrderitemses(), "order is empty!");
@@ -178,11 +177,11 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, ex.getMessage());
 		}
 		// update order status to completed
-		orders.setStatus(OrderStatusEnum.COMPLETED.getStatusName());
+		orders.setStatus(OrderStatusEnum.COMPLETED.getStatus());
 		Date currTime = new Date();
 		orders.setLastupdate(currTime);
 		orders.getOrderitemses().forEach(oi -> {
-			oi.setStatus(OrderStatusEnum.COMPLETED.getStatusName());
+			oi.setStatus(OrderStatusEnum.COMPLETED.getStatus());
 		});
 		ordersRepository.save(orders);
 
@@ -216,8 +215,18 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 		response.setTotalTax(orders2.getTotaltax().doubleValue());
 		response.setLastUpdate(orders2.getLastupdate().toString());
 		response.setCreationDate(orders2.getTimeplaced().toString());
-		response.setOrderStatus(orders2.getStatus());
+		response.setOrderStatus(getStatus(orders2.getStatus()));
 		return response;
+	}
+
+	private String getStatus(String str) {
+		if (str.equals(OrderStatusEnum.NEW.getStatus())) {
+			return OrderStatusEnum.NEW.name();
+		} else if (str.equals(OrderStatusEnum.COMPLETED.getStatus())) {
+			return OrderStatusEnum.COMPLETED.name();
+		} else {
+			return "NA";
+		}
 	}
 
 	private void setChannelList(Orders orders2, OrderResponseDto response) {

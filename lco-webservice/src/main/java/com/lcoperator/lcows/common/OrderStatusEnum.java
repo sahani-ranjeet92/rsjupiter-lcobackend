@@ -4,14 +4,14 @@ public enum OrderStatusEnum {
 
 	NEW("N"), COMPLETED("C");
 
-	private String statusName;
+	private String status;
 
 	private OrderStatusEnum(String statusName) {
-		this.statusName = statusName;
+		this.status = statusName;
 	}
 
-	public String getStatusName() {
-		return statusName;
+	public String getStatus() {
+		return status;
 	}
 
 }

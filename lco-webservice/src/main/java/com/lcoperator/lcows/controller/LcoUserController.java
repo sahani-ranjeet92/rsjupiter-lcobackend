@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +28,7 @@ public class LcoUserController extends LcoBaseController {
 	@Autowired
 	private LcoUserManager manager;
 
-	@PostMapping("/registerUser")
+	@PostMapping(value = "/registerUser", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> registerUser(@RequestParam("userName") String userName) {
 		try {
 			UserResonseDto data = manager.registerUser(userName);
@@ -40,7 +41,7 @@ public class LcoUserController extends LcoBaseController {
 		}
 	}
 
-	@GetMapping("/getUser")
+	@GetMapping(value = "/getUser", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> getUser(@RequestParam("userName") String userName) {
 		try {
 			UserResonseDto data = manager.getUser(userName);
@@ -53,7 +54,7 @@ public class LcoUserController extends LcoBaseController {
 		}
 	}
 
-	@GetMapping("/getUserList")
+	@GetMapping(value = "/getUserList", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> getUserList() {
 		try {
 			List<UserResonseDto> data = manager.getUserList();
