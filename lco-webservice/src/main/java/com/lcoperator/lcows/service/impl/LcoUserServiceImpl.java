@@ -3,6 +3,7 @@ package com.lcoperator.lcows.service.impl;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.lcoperator.lcodb.model.User;
 import com.lcoperator.lcodb.repository.UserRepository;
-import com.lcoperator.lcows.common.UserResonseDto;
+import com.lcoperator.lcows.common.UserResponseDto;
 import com.lcoperator.lcows.exception.LcoUserException;
 import com.lcoperator.lcows.service.LcoUserService;
 
@@ -41,19 +42,43 @@ public class LcoUserServiceImpl implements LcoUserService {
 	}
 
 	@Override
-	public UserResonseDto getUser(String userName) throws LcoUserException {
+	public UserResponseDto getUser(String userName) throws LcoUserException {
 		User user = userRepository.findByUsername(userName);
-		if(user == null){
+		if (user == null) {
 			throw new LcoUserException(HttpStatus.BAD_REQUEST, "user not exist");
 		}
-		UserResonseDto response = new UserResonseDto();
-		response.setUserId(user.getUserId());
-		return response;
+		return mapUserToUserResponseDto(user);
 	}
 
 	@Override
 	public Iterable<User> getUserList() {
 		return userRepository.findAll();
+	}
+
+	@Override
+	public UserResponseDto getUserById(Long userId) throws LcoUserException {
+		Optional<User> userOptional = userRepository.findById(userId);
+
+		if (!userOptional.isPresent()) {
+			throw new LcoUserException(HttpStatus.BAD_REQUEST, "user not exist");
+		}
+
+		return mapUserToUserResponseDto(userOptional.get());
+
+	}
+
+	private UserResponseDto mapUserToUserResponseDto(User user) {
+		UserResponseDto response = new UserResponseDto();
+		response.setUserId(user.getUserId());
+		response.setCreatedTimestamp(user.getCreatedTimestamp() == null ? null : user.getCreatedTimestamp().getTime());
+		response.setDateOfBirth(user.getDateOfBirth() == null ? 0 : user.getDateOfBirth().getTime());
+		response.setEmail(user.getEmail());
+		response.setFirstName(user.getFirstName());
+		response.setLastName(user.getLastName());
+		response.setGender(user.getGender());
+		response.setStatus(user.getStatus());
+		response.setUsername(user.getUsername());
+		return response;
 	}
 
 }

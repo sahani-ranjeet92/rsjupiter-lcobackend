@@ -1,6 +1,6 @@
 package com.lcoperator.lcows.common;
 
-public class UserResonseDto {
+public class UserResponseDto {
 
 	private long userId;
 	private String username;

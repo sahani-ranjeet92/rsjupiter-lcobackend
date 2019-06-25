@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.lcoperator.lcows.common.LcoResponseInfo;
-import com.lcoperator.lcows.common.UserResonseDto;
+import com.lcoperator.lcows.common.UserResponseDto;
 import com.lcoperator.lcows.exception.LcoUserException;
 import com.lcoperator.lcows.manager.LcoUserManager;
 
@@ -31,7 +31,7 @@ public class LcoUserController extends LcoBaseController {
 	@PostMapping(value = "/registerUser", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> registerUser(@RequestParam("userName") String userName) {
 		try {
-			UserResonseDto data = manager.registerUser(userName);
+			UserResponseDto data = manager.registerUser(userName);
 			return getSuccessResponseInfo("User Registered Successfully", data, HttpStatus.OK);
 		} catch (LcoUserException ex) {
 			return getErrorResponseInfo(ex.getMessage(), ex.getStatus());
@@ -44,7 +44,7 @@ public class LcoUserController extends LcoBaseController {
 	@GetMapping(value = "/getUser", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> getUser(@RequestParam("userName") String userName) {
 		try {
-			UserResonseDto data = manager.getUser(userName);
+			UserResponseDto data = manager.getUser(userName);
 			return getSuccessResponseInfo(HttpStatus.OK.getReasonPhrase(), data, HttpStatus.OK);
 		} catch (LcoUserException ex) {
 			return getErrorResponseInfo(ex.getMessage(), ex.getStatus());
@@ -53,11 +53,25 @@ public class LcoUserController extends LcoBaseController {
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+	@GetMapping(value = "/getUserDetail", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<LcoResponseInfo> getUserDetail(@RequestParam("userId") Long userId) {
+		try {
+			UserResponseDto data = manager.getUserById(userId);
+			return getSuccessResponseInfo(HttpStatus.OK.getReasonPhrase(), data, HttpStatus.OK);
+		} catch (LcoUserException ex) {
+			return getErrorResponseInfo(ex.getMessage(), ex.getStatus());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return getErrorResponseInfo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
 	@GetMapping(value = "/getUserList", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LcoResponseInfo> getUserList() {
 		try {
-			List<UserResonseDto> data = manager.getUserList();
+			List<UserResponseDto> data = manager.getUserList();
 			return getSuccessResponseInfo(HttpStatus.OK.getReasonPhrase(), data, HttpStatus.OK);
 		} catch (Exception ex) {
 			return getErrorResponseInfo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
