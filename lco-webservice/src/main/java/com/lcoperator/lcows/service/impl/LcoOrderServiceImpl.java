@@ -1,9 +1,12 @@
 package com.lcoperator.lcows.service.impl;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -30,6 +33,7 @@ import com.lcoperator.lcows.common.OrderReqDto;
 import com.lcoperator.lcows.common.OrderResponseDto;
 import com.lcoperator.lcows.common.OrderStatusEnum;
 import com.lcoperator.lcows.common.ProductDto;
+import com.lcoperator.lcows.common.RemoveOrderItemReqDto;
 import com.lcoperator.lcows.exception.LcoOrderException;
 import com.lcoperator.lcows.service.LcoOrderService;
 
@@ -59,24 +63,24 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 	public long addOrderItem(OrderReqDto request) throws LcoOrderException {
 		Optional<User> user = userRepository.findById(request.getUserId());
 		if (!user.isPresent()) {
-			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "user not found");
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "Either order not found or completed");
 		}
 		List<Catentry> channels = catentryRepository.findAllChannels(request.getProductIds());
 		if (channels.isEmpty() || channels.size() < request.getProductIds().size()) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "Invalid channel list");
 		}
-		Orders orders = ordersRepository.findOrder(request.getUserId(), OrderStatusEnum.NEW.getStatusName());
+		Orders orders = ordersRepository.findOrder(request.getUserId(), OrderStatusEnum.NEW.getStatus());
 		if (orders == null) {// create new order
 			orders = new Orders();
 			orders.setUser(user.get());
 			orders.setTimeplaced(new Date());
-			orders.setStatus(OrderStatusEnum.NEW.getStatusName());
+			orders.setStatus(OrderStatusEnum.NEW.getStatus());
 			orders.setTotaladjustment(BigDecimal.ZERO);
 			orders.setTotalproduct(BigDecimal.ZERO);
 			orders.setTotaltax(BigDecimal.ZERO);
 		}
 		// add order item
-		BigDecimal totalPrice = BigDecimal.ZERO;
+		BigDecimal totalPrice = orders.getTotalproduct();
 		List<Long> existingProdIds = orders.getOrderitemses().stream().map(Orderitems::getProductId)
 				.collect(Collectors.toList());
 		for (Catentry channel : channels) {
@@ -99,11 +103,10 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 			}
 
 			Orderitems oi = new Orderitems(orders, user.get(), channel.getCatentryId(), price,
-					OrderStatusEnum.NEW.getStatusName(), new Date(), new Date(), offerId, BigDecimal.ZERO,
-					BigDecimal.ZERO);
+					OrderStatusEnum.NEW.getStatus(), new Date(), new Date(), offerId, BigDecimal.ZERO, BigDecimal.ZERO);
 			orders.getOrderitemses().add(oi);
 			// add price
-			totalPrice.add(price);
+			totalPrice = totalPrice.add(price);
 		}
 		orders.setTotalproduct(totalPrice);
 		ordersRepository.save(orders);
@@ -111,22 +114,97 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 	}
 
 	@Override
+	@Transactional
+	public long removeOrderItem(RemoveOrderItemReqDto request) throws LcoOrderException {
+
+		Orders orders = ordersRepository.findOrder(request.getOrderId(), request.getUserId(),
+				OrderStatusEnum.NEW.getStatus());
+		if (orders == null) {// create new order
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "Either order not found or completed");
+		}
+		// remove order item
+		Set<Orderitems> orderitemses = new HashSet<>(orders.getOrderitemses());
+		double totalProductPrice = orderitemses.stream().map(oi -> {
+			if (oi.getOrderitemsId().longValue() == request.getOrderItemId()) {
+				orders.getOrderitemses().remove(oi);
+				orderitemsRepository.delete(oi);
+				return BigDecimal.ZERO;
+			} else {
+				return oi.getProductprice();
+			}
+
+		}).collect(Collectors.summingDouble((BigDecimal::doubleValue)));
+		// double totalProductPrice =
+		// orders.getOrderitemses().stream().map(Orderitems::getProductprice)
+		// .collect(Collectors.summingDouble((BigDecimal::doubleValue)));
+		orders.setTotalproduct(new BigDecimal(totalProductPrice));
+		ordersRepository.save(orders);
+		return orders.getOrdersId();
+	}
+
+	@Override
 	public OrderResponseDto getOrderDetail(long orderid) throws LcoOrderException {
-		Optional<Orders> orders = ordersRepository.findById(orderid);
-		if (!orders.isPresent()) {
+		Optional<Orders> ordersOpt = ordersRepository.findById(orderid);
+		if (!ordersOpt.isPresent()) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "order does not exist!");
 		}
-		return mapOrdersToOrderResponseDto(orders.get());
+		Orders orders = ordersOpt.get();
+		OrderResponseDto orderResponse = mapOrdersToOrderResponseDto(orders);
+		setChannelList(orders, orderResponse);
+		return orderResponse;
 	}
 
 	@Override
 	public OrderResponseDto getOrderByUserId(Long userId) throws LcoOrderException {
-		Orders orders = ordersRepository.findOrder(userId, OrderStatusEnum.NEW.getStatusName());
+		Orders orders = ordersRepository.findOrder(userId, OrderStatusEnum.NEW.getStatus());
 		if (orders == null) {
 			throw new LcoOrderException(HttpStatus.BAD_REQUEST, "order does not exist!");
 		}
-		return mapOrdersToOrderResponseDto(orders);
+		OrderResponseDto orderResponse = mapOrdersToOrderResponseDto(orders);
+		setChannelList(orders, orderResponse);
+		return orderResponse;
 
+	}
+
+	@Override
+	@Transactional
+	public void orderCheckout(Long orderId, Long userId) throws LcoOrderException {
+		Orders orders = ordersRepository.findOrder(orderId, userId, OrderStatusEnum.NEW.getStatus());
+		try {
+			Validate.notNull(orders, "order does not exist!");
+			Validate.notEmpty(orders.getOrderitemses(), "order is empty!");
+		} catch (NullPointerException | IllegalArgumentException ex) {
+			throw new LcoOrderException(HttpStatus.BAD_REQUEST, ex.getMessage());
+		}
+		// update order status to completed
+		orders.setStatus(OrderStatusEnum.COMPLETED.getStatus());
+		Date currTime = new Date();
+		orders.setLastupdate(currTime);
+		orders.getOrderitemses().forEach(oi -> {
+			oi.setStatus(OrderStatusEnum.COMPLETED.getStatus());
+		});
+		ordersRepository.save(orders);
+
+		Checkout checkout = new Checkout();
+		checkout.setLastupdate(currTime);
+		checkout.setTimeplaced(currTime);
+		checkout.setOrdersId(orders.getOrdersId());
+		checkout.setStatus("Deactive");
+		checkout.setUserId(userId);
+
+		checkoutRepository.save(checkout);
+
+	}
+
+	@Override
+	public List<OrderResponseDto> getOrderList() {
+		List<OrderResponseDto> list = new ArrayList<>();
+		ordersRepository.findAll().forEach(orders -> {
+			OrderResponseDto orderResponse = mapOrdersToOrderResponseDto(orders);
+			orderResponse.setQuantity(orderitemsRepository.getItemCountByOrderId(orders.getOrdersId()));
+			list.add(orderResponse);
+		});
+		return list;
 	}
 
 	private OrderResponseDto mapOrdersToOrderResponseDto(Orders orders2) {
@@ -134,8 +212,24 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 		response.setOrderId(orders2.getOrdersId());
 		response.setUserId(orders2.getUser().getUserId());
 		response.setTotalPrice(orders2.getTotalproduct().doubleValue());
+		response.setTotalTax(orders2.getTotaltax().doubleValue());
 		response.setLastUpdate(orders2.getLastupdate().toString());
 		response.setCreationDate(orders2.getTimeplaced().toString());
+		response.setOrderStatus(getStatus(orders2.getStatus()));
+		return response;
+	}
+
+	private String getStatus(String str) {
+		if (str.equals(OrderStatusEnum.NEW.getStatus())) {
+			return OrderStatusEnum.NEW.name();
+		} else if (str.equals(OrderStatusEnum.COMPLETED.getStatus())) {
+			return OrderStatusEnum.COMPLETED.name();
+		} else {
+			return "NA";
+		}
+	}
+
+	private void setChannelList(Orders orders2, OrderResponseDto response) {
 		response.setChannels(orders2.getOrderitemses().stream().map(oi -> {
 			OrderItemDto oiDto = new OrderItemDto();
 			oiDto.setOrderitemsId(oi.getOrderitemsId());
@@ -154,37 +248,6 @@ public class LcoOrderServiceImpl implements LcoOrderService {
 			oiDto.setProduct(dto);
 			return oiDto;
 		}).collect(Collectors.toList()));
-		return response;
-	}
-
-	@Override
-	@Transactional
-	public void orderCheckout(Long orderId, Long userId) throws LcoOrderException {
-		Orders orders = ordersRepository.findOrder(orderId, userId, OrderStatusEnum.NEW.getStatusName());
-		try {
-			Validate.notNull(orders, "order does not exist!");
-			Validate.notEmpty(orders.getOrderitemses(), "order is empty!");
-		} catch (NullPointerException | IllegalArgumentException ex) {
-			throw new LcoOrderException(HttpStatus.BAD_REQUEST, ex.getMessage());
-		}
-		// update order status to completed
-		orders.setStatus(OrderStatusEnum.COMPLETED.getStatusName());
-		Date currTime = new Date();
-		orders.setLastupdate(currTime);
-		orders.getOrderitemses().forEach(oi -> {
-			oi.setStatus(OrderStatusEnum.COMPLETED.getStatusName());
-		});
-		ordersRepository.save(orders);
-
-		Checkout checkout = new Checkout();
-		checkout.setLastupdate(currTime);
-		checkout.setTimeplaced(currTime);
-		checkout.setOrdersId(orders.getOrdersId());
-		checkout.setStatus("Deactive");
-		checkout.setUserId(userId);
-		
-		checkoutRepository.save(checkout);
-
 	}
 
 }

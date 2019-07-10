@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.lcoperator.lcodb.model.User;
-import com.lcoperator.lcows.common.UserResonseDto;
+import com.lcoperator.lcows.common.UserResponseDto;
 import com.lcoperator.lcows.exception.LcoUserException;
 import com.lcoperator.lcows.service.LcoUserService;
 
@@ -23,26 +23,26 @@ public class LcoUserManager {
 	@Autowired
 	private LcoUserService lcoUserService;
 
-	public UserResonseDto registerUser(String userName) throws LcoUserException {
+	public UserResponseDto registerUser(String userName) throws LcoUserException {
 		if (userName == null || userName == "")
 			throw new LcoUserException(HttpStatus.BAD_REQUEST, "username must not be empty");
 		if (lcoUserService.userExist(userName)) {
 			throw new LcoUserException(HttpStatus.BAD_REQUEST, "username already registered");
 		}
-		UserResonseDto userResonseDto = new UserResonseDto();
+		UserResponseDto userResonseDto = new UserResponseDto();
 		userResonseDto.setUserId(lcoUserService.registerUser(userName));
 		return userResonseDto;
 	}
 
-	public UserResonseDto getUser(String userName) throws LcoUserException {
+	public UserResponseDto getUser(String userName) throws LcoUserException {
 		return lcoUserService.getUser(userName);
 	}
 
-	public List<UserResonseDto> getUserList() {
+	public List<UserResponseDto> getUserList() {
 		Iterable<User> iterator = lcoUserService.getUserList();
-		List<UserResonseDto> userList = new ArrayList<UserResonseDto>();
+		List<UserResponseDto> userList = new ArrayList<UserResponseDto>();
 		iterator.forEach(user -> {
-			UserResonseDto userResonseDto = new UserResonseDto();
+			UserResponseDto userResonseDto = new UserResponseDto();
 			userResonseDto.setUserId(user.getUserId());
 			userResonseDto.setUsername(user.getUsername());
 			userResonseDto.setEmail(user.getEmail());
@@ -54,6 +54,10 @@ public class LcoUserManager {
 			userList.add(userResonseDto);
 		});
 		return userList;
+	}
+
+	public UserResponseDto getUserById(Long userId) throws LcoUserException {
+		return lcoUserService.getUserById(userId);
 	}
 
 }
